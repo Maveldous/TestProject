@@ -18,6 +18,11 @@ export default {
         JSON.parse(localStorage.getItem('adsmanager-campaigns-selected')) : [],
       filtered: [],
     },
+    stat: [],
+    filters: {
+      name: '',
+      statuses: typeof localStorage.getItem('accounts-filters-statuses') === 'undefined' ? [] : JSON.parse(localStorage.getItem('accounts-filters-statuses')),
+    },
     dialogs: {
       changeBudget: false,
       pause: false,
@@ -27,7 +32,7 @@ export default {
     loading: {
       mainTable: false,
     },
-    stat: []
+
   },
   getters: {
     ...mixinDialogGetters,
@@ -61,9 +66,48 @@ export default {
     SET_FILTERED: (state, payload) => {
       state.campaigns.filtered = payload;
     },
+    SET_FILTERS_NAME: (state, payload) => {
+      state.filters.name = payload;
+    },
+    FILTER_CAMPAIGNS (state) {
+      let campaigns = state.campaigns.all;
+      const filters = state.filters;
+
+      if (filters.name) {
+        if (filters.name.length > 0) {
+          campaigns = campaigns.filter(campaign => {
+            return (
+              campaign.name.toString().toLowerCase().search(filters.name.toLowerCase()) !== -1
+            );
+          });
+        }
+      }
+
+      if (filters.statuses && filters.statuses.length > 0) {
+        campaigns = campaigns.filter(function(campaign) {
+          return filters.statuses.indexOf(campaign.status) > -1;
+        });
+      }
+
+      if (this.state.adsmanager.filters.tags && this.state.adsmanager.filters.tags.length > 0) {
+        campaigns = campaigns.filter(campaign => {
+          return this.state.adsmanager.filters.tags.some(tag => {
+            if (!Array.isArray(campaign.tags)) return false;
+            return campaign.tags.indexOf(tag.toString()) > -1;
+          });
+        });
+      }
+      
+      state.campaigns.filtered = campaigns;
+    },
   },
   actions: {
     ...mixinDialogActions,
+
+    async setFiltersName(context, payload) {
+      context.commit('SET_FILTERS_NAME', payload);
+      context.commit('FILTER_CAMPAIGNS');
+    },
 
     async loadCampaigns({commit, rootState, dispatch}) {
       const data = {
