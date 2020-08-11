@@ -40,8 +40,8 @@ export default {
     return {
       moment,
       dateRange: {
-        startDate: '2020-04-23',
-        endDate: '2020-04-23'
+        startDate: '2020-01-01',
+        endDate: '2020-12-31'
       },
       localeData: {
         direction: 'ltr',
@@ -82,5 +82,8 @@ export default {
   }
   .v-text-field--solo{
     border-radius: 0;
+  }
+  .calendars{
+    color: #000;
   }
 </style>
